@@ -1,0 +1,44 @@
+{
+  "name": "mu-auth-sudo",
+  "version": "1.0.0",
+  "description": "this package provides an alternative sparql client for the mu-javascript-template that has sudo rights.",
+  "main": "dist/auth-sudo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "rm -rf dist && babel src --out-dir dist/",
+    "prepublish": "rm -rf dist && babel src --out-dir dist/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lblod/mu-auth-sudo.git"
+  },
+  "keywords": [
+    "sparql",
+    "client",
+    "mu.semte.ch"
+  ],
+  "author": "info@redpencil.io",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lblod/mu-auth-sudo/issues"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ],
+    "plugins": [
+      "add-module-exports"
+    ]
+  },
+  "homepage": "https://github.com/lblod/mu-auth-sudo#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-plugin-add-module-exports": "^1.0.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-register": "^6.26.0"
+  },
+  "dependencies": {
+    "sparql-client-2": "^0.6.3"
+  }
+}
