@@ -2,7 +2,7 @@ import httpContext from 'express-http-context';
 import SC2 from 'sparql-client-2';
 const { SparqlClient } = SC2;
 
-function sudoSparqlClient() {
+function sudoSparqlClient( extraHeaders = {} ) {
   let options = {
     requestDefaults: {
       headers: {
@@ -16,14 +16,20 @@ function sudoSparqlClient() {
     options.requestDefaults.headers['mu-call-id'] = httpContext.get('request').get('mu-call-id');
   }
 
+  if(extraHeaders) {
+    for(const key of Object.keys(extraHeaders)){
+      options.requestDefaults.headers[key] = extraHeaders[key];
+    }
+  }
+
   console.log(`Headers set on SPARQL client: ${JSON.stringify(options)}`);
 
   return new SparqlClient(process.env.MU_SPARQL_ENDPOINT, options);
 }
 
-function querySudo(queryString) {
+function querySudo(queryString, extraHeaders = {}) {
   console.log(queryString);
-  return sudoSparqlClient().query(queryString).executeRaw().then(response => {
+  return sudoSparqlClient(extraHeaders).query(queryString).executeRaw().then(response => {
     function maybeParseJSON(body) {
       // Catch invalid JSON
       try {
