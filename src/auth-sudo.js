@@ -1,6 +1,12 @@
 import httpContext from 'express-http-context';
 import SC2 from 'sparql-client-2';
+import env from 'env-var';
+
 const { SparqlClient } = SC2;
+
+const LOG_SPARQL_QUERIES = process.env.LOG_SPARQL_QUERIES != undefined ? env.get('LOG_SPARQL_QUERIES').asBool() : env.get('LOG_SPARQL_ALL').asBool();
+const LOG_SPARQL_UPDATES = process.env.LOG_SPARQL_UPDATES != undefined ? env.get('LOG_SPARQL_UPDATES').asBool() : env.get('LOG_SPARQL_ALL').asBool();
+const DEBUG_AUTH_HEADERS = env.get('DEBUG_AUTH_HEADERS').asBool();
 
 function sudoSparqlClient() {
   let options = {
@@ -37,12 +43,16 @@ function executeRawQuery(queryString) {
 }
 
 function querySudo(queryString) {
-  console.log(queryString);
+  if( LOG_SPARQL_QUERIES ) {
+    console.log(queryString);
+  }
   return executeRawQuery(queryString);
 }
 
 function updateSudo(queryString) {
-  console.log(queryString);
+  if( LOG_SPARQL_UPDATES ) {
+    console.log(queryString);
+  }
   return executeRawQuery(queryString);
 }
 
