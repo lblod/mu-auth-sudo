@@ -21,8 +21,7 @@ function sudoSparqlClient() {
   return new SparqlClient(process.env.MU_SPARQL_ENDPOINT, options);
 }
 
-function querySudo(queryString) {
-  console.log(queryString);
+function executeRawQuery(queryString) {
   return sudoSparqlClient().query(queryString).executeRaw().then(response => {
     function maybeParseJSON(body) {
       // Catch invalid JSON
@@ -37,7 +36,15 @@ function querySudo(queryString) {
   });
 }
 
-const updateSudo = querySudo;
+function querySudo(queryString) {
+  console.log(queryString);
+  return executeRawQuery(queryString);
+}
+
+function updateSudo(queryString) {
+  console.log(queryString);
+  return executeRawQuery(queryString);
+}
 
 const exports = {
   querySudo,
