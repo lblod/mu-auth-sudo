@@ -39,6 +39,7 @@
     "babel-register": "^6.26.0"
   },
   "dependencies": {
+    "env-var": "^7.0.1",
     "sparql-client-2": "https://github.com/erikap/node-sparql-client.git"
   }
 }
