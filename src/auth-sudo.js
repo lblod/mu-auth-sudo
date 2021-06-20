@@ -22,7 +22,9 @@ function sudoSparqlClient() {
     options.requestDefaults.headers['mu-call-id'] = httpContext.get('request').get('mu-call-id');
   }
 
-  console.log(`Headers set on SPARQL client: ${JSON.stringify(options)}`);
+  if( DEBUG_AUTH_HEADERS ) {
+    console.log(`Headers set on SPARQL client: ${JSON.stringify(options)}`);
+  }
 
   return new SparqlClient(process.env.MU_SPARQL_ENDPOINT, options);
 }
