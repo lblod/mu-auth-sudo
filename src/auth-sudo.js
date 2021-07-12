@@ -1,6 +1,10 @@
 import httpContext from 'express-http-context';
-import SC2 from 'sparql-client-2';
-const { SparqlClient } = SC2;
+import { SparqlClient } from 'sparql-client-2';
+import env from 'env-var';
+
+const LOG_SPARQL_QUERIES = process.env.LOG_SPARQL_QUERIES != undefined ? env.get('LOG_SPARQL_QUERIES').asBool() : env.get('LOG_SPARQL_ALL').asBool();
+const LOG_SPARQL_UPDATES = process.env.LOG_SPARQL_UPDATES != undefined ? env.get('LOG_SPARQL_UPDATES').asBool() : env.get('LOG_SPARQL_ALL').asBool();
+const DEBUG_AUTH_HEADERS = env.get('DEBUG_AUTH_HEADERS').asBool();
 
 function sudoSparqlClient( extraHeaders = {} ) {
   let options = {
@@ -16,20 +20,21 @@ function sudoSparqlClient( extraHeaders = {} ) {
     options.requestDefaults.headers['mu-call-id'] = httpContext.get('request').get('mu-call-id');
   }
 
+
   if(extraHeaders) {
     for(const key of Object.keys(extraHeaders)){
       options.requestDefaults.headers[key] = extraHeaders[key];
     }
   }
 
-  console.log(`Headers set on SPARQL client: ${JSON.stringify(options)}`);
-
+  if( DEBUG_AUTH_HEADERS ) {
+    console.log(`Headers set on SPARQL client: ${JSON.stringify(options)}`);
+  }
   return new SparqlClient(process.env.MU_SPARQL_ENDPOINT, options);
 }
 
-function querySudo(queryString, extraHeaders = {}) {
-  console.log(queryString);
-  return sudoSparqlClient(extraHeaders).query(queryString).executeRaw().then(response => {
+function executeRawQuery(queryString) {
+  return sudoSparqlClient().query(queryString).executeRaw().then(response => {
     function maybeParseJSON(body) {
       // Catch invalid JSON
       try {
@@ -43,7 +48,19 @@ function querySudo(queryString, extraHeaders = {}) {
   });
 }
 
-const updateSudo = querySudo;
+function querySudo(queryString) {
+  if( LOG_SPARQL_QUERIES ) {
+    console.log(queryString);
+  }
+  return executeRawQuery(queryString);
+}
+
+function updateSudo(queryString) {
+  if( LOG_SPARQL_UPDATES ) {
+    console.log(queryString);
+  }
+  return executeRawQuery(queryString);
+}
 
 const exports = {
   querySudo,
