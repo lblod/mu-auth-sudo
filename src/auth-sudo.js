@@ -33,8 +33,8 @@ function sudoSparqlClient( extraHeaders = {} ) {
   return new SparqlClient(process.env.MU_SPARQL_ENDPOINT, options);
 }
 
-function executeRawQuery(queryString) {
-  return sudoSparqlClient().query(queryString).executeRaw().then(response => {
+function executeRawQuery(queryString, extraHeaders = {}) {
+  return sudoSparqlClient(extraHeaders).query(queryString).executeRaw().then(response => {
     function maybeParseJSON(body) {
       // Catch invalid JSON
       try {
@@ -48,7 +48,7 @@ function executeRawQuery(queryString) {
   });
 }
 
-function querySudo(queryString) {
+function querySudo(queryString, extraHeaders = {}) {
   if( LOG_SPARQL_QUERIES ) {
     console.log(queryString);
   }
