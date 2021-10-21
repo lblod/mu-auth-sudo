@@ -55,7 +55,12 @@ function querySudo(queryString, extraHeaders = {}) {
   return executeRawQuery(queryString, extraHeaders);
 }
 
-const updateSudo = querySudo;
+function updateSudo(queryString, extraHeaders = {}) {
+  if( LOG_SPARQL_UPDATES ) {
+    console.log(queryString);
+  }
+  return executeRawQuery(queryString, extraHeaders);
+}
 
 const exports = {
   querySudo,
