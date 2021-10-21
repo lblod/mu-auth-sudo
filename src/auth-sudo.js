@@ -52,14 +52,14 @@ function querySudo(queryString, extraHeaders = {}) {
   if( LOG_SPARQL_QUERIES ) {
     console.log(queryString);
   }
-  return executeRawQuery(queryString);
+  return executeRawQuery(queryString, extraHeaders);
 }
 
-function updateSudo(queryString) {
+function updateSudo(queryString, extraHeaders = {}) {
   if( LOG_SPARQL_UPDATES ) {
     console.log(queryString);
   }
-  return executeRawQuery(queryString);
+  return executeRawQuery(queryString, extraHeaders);
 }
 
 const exports = {
