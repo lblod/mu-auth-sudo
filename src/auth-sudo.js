@@ -7,7 +7,7 @@ const LOG_SPARQL_UPDATES = process.env.LOG_SPARQL_UPDATES != undefined ? env.get
 const DEBUG_AUTH_HEADERS = env.get('DEBUG_AUTH_HEADERS').asBool();
 const RETRY = env.get('QUERY_RETRY').default('false').asBool();
 const RETRY_MAX_ATTEMPTS = env.get('QUERY_RETRY_MAX_ATTEMPTS').default('5').asInt();
-const RETRY_ON_HTTP_STATUS_CODES = env.get('QUERY_RETRY_ON_HTTP_STATUS_CODES').default('404').asArray();
+const RETRY_ON_HTTP_STATUS_CODES = env.get('QUERY_RETRY_ON_HTTP_STATUS_CODES').default('').asArray();
 
 function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint ) {
 
