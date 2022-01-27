@@ -8,6 +8,7 @@ const DEBUG_AUTH_HEADERS = env.get('DEBUG_AUTH_HEADERS').asBool();
 const RETRY = env.get('QUERY_RETRY').default('false').asBool();
 const RETRY_MAX_ATTEMPTS = env.get('QUERY_RETRY_MAX_ATTEMPTS').default('5').asInt();
 const RETRY_ON_HTTP_STATUS_CODES = env.get('QUERY_RETRY_ON_HTTP_STATUS_CODES').default('').asArray();
+const RETRY_ON_CONNECTION_ERRORS = env.get('QUERY_RETRY_ON_CONNECTION_ERRORS').default('ECONNRESET,ETIMEDOUT,EAI_AGAIN').asArray();
 
 function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint = process.env.MU_SPARQL_ENDPOINT ) {
   let options = {
@@ -88,7 +89,7 @@ function mayRetry(error, attempt) {
   let mayRetry = false;
 
   if(RETRY && attempt < RETRY_MAX_ATTEMPTS) {
-    if(error.code == 'ECONNRESET') {
+    if(error.code && RETRY_ON_CONNECTION_ERRORS.includes(error.code)) {
       mayRetry = true;
     } else if(error.httpStatus & RETRY_ON_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
       mayRetry = true;
