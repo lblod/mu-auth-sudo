@@ -9,6 +9,24 @@ npm install @lblod/mu-auth-sudo
 Include the following in your code
 ```
 import { querySudo as query, updateSudo as update } from '@lblod/mu-auth-sudo';
+
+
+//Examples
+
+// To run a normal query
+
+const queryString = `SELECT * FROM { GRAPH ?g { ?s ?p ?o. } } LIMIT 1`;
+await query(queryString);
+
+// To pass extra headers
+
+const updateString = `INSERT DATA { GRAPH <http://foo> { <http://bar> <http://baz> <http://boom>. } }`;
+const extraHeaders = { 'mu-call-scope-id':  'http://foo/bar', 'other-info'; 'hello' };
+await update(updateString, extraHeaders);
+
+// With custom sparqlEndpoint (this should be exceptional, make sure you know what you're doing)
+
+await update(updateString, extraHeaders, 'http://the.sparql.endpoint/sparql');
 ```
 
 ## Logging
