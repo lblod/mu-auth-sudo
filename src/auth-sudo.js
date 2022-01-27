@@ -90,7 +90,7 @@ function mayRetry(error, attempt) {
   if(RETRY && attempt < RETRY_MAX_ATTEMPTS) {
     if(error.code == 'ECONNRESET') {
       mayRetry = true;
-    } else if(RETRY_ON_HTTP_STATUS_CODES.includes(`${error.statusCode}`)) {
+    } else if(error.httpStatus & RETRY_ON_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
       mayRetry = true;
     }
   }
