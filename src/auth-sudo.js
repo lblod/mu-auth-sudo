@@ -6,7 +6,7 @@ const LOG_SPARQL_QUERIES = process.env.LOG_SPARQL_QUERIES != undefined ? env.get
 const LOG_SPARQL_UPDATES = process.env.LOG_SPARQL_UPDATES != undefined ? env.get('LOG_SPARQL_UPDATES').asBool() : env.get('LOG_SPARQL_ALL').asBool();
 const DEBUG_AUTH_HEADERS = env.get('DEBUG_AUTH_HEADERS').asBool();
 
-function sudoSparqlClient( extraHeaders = {} ) {
+function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint = process.env.MU_SPARQL_ENDPOINT ) {
   let options = {
     requestDefaults: {
       headers: {
@@ -30,11 +30,12 @@ function sudoSparqlClient( extraHeaders = {} ) {
   if( DEBUG_AUTH_HEADERS ) {
     console.log(`Headers set on SPARQL client: ${JSON.stringify(options)}`);
   }
-  return new SparqlClient(process.env.MU_SPARQL_ENDPOINT, options);
+
+  return new SparqlClient(sparqlEndpoint, options);
 }
 
-function executeRawQuery(queryString, extraHeaders = {}) {
-  return sudoSparqlClient(extraHeaders).query(queryString).executeRaw().then(response => {
+function executeRawQuery(queryString, extraHeaders = {}, sparqlEndpoint) {
+  return sudoSparqlClient(extraHeaders, sparqlEndpoint).query(queryString).executeRaw().then(response => {
     function maybeParseJSON(body) {
       // Catch invalid JSON
       try {
@@ -48,18 +49,19 @@ function executeRawQuery(queryString, extraHeaders = {}) {
   });
 }
 
-function querySudo(queryString, extraHeaders = {}) {
+
+function querySudo(queryString, extraHeaders = {}, sparqlEndpoint) {
   if( LOG_SPARQL_QUERIES ) {
     console.log(queryString);
   }
-  return executeRawQuery(queryString, extraHeaders);
+  return executeRawQuery(queryString, extraHeaders, sparqlEndpoint);
 }
 
-function updateSudo(queryString, extraHeaders = {}) {
+function updateSudo(queryString, extraHeaders = {}, sparqlEndpoint) {
   if( LOG_SPARQL_UPDATES ) {
     console.log(queryString);
   }
-  return executeRawQuery(queryString, extraHeaders);
+  return executeRawQuery(queryString, extraHeaders, sparqlEndpoint);
 }
 
 const exports = {
