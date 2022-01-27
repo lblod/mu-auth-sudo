@@ -6,7 +6,7 @@ const LOG_SPARQL_QUERIES = process.env.LOG_SPARQL_QUERIES != undefined ? env.get
 const LOG_SPARQL_UPDATES = process.env.LOG_SPARQL_UPDATES != undefined ? env.get('LOG_SPARQL_UPDATES').asBool() : env.get('LOG_SPARQL_ALL').asBool();
 const DEBUG_AUTH_HEADERS = env.get('DEBUG_AUTH_HEADERS').asBool();
 
-function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint ) {
+function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint = process.env.MU_SPARQL_ENDPOINT ) {
   sparqlEndpoint = sparqlEndpoint || process.env.MU_SPARQL_ENDPOINT;
   let options = {
     requestDefaults: {
