@@ -35,21 +35,10 @@ function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint ) {
   return new SparqlClient(sparqlEndpoint, options);
 }
 
-function executeRawQuery(queryString, extraHeaders = {}, sparqlEndpoint) {
-  return sudoSparqlClient(extraHeaders, sparqlEndpoint).query(queryString).executeRaw().then(response => {
-    function maybeParseJSON(body) {
-      // Catch invalid JSON
-      try {
-        return JSON.parse(body);
-      } catch (ex) {
-        return null;
-      }
-    }
-
-    return maybeParseJSON(response.body);
-  });
+async function executeRawQuery(queryString, extraHeaders = {}, sparqlEndpoint) {
+  const response = await sudoSparqlClient(extraHeaders, sparqlEndpoint).query(queryString).executeRaw();
+  return maybeParseJSON(response.body);
 }
-
 
 function querySudo(queryString, extraHeaders = {}, sparqlEndpoint) {
   if( LOG_SPARQL_QUERIES ) {
@@ -63,6 +52,15 @@ function updateSudo(queryString, extraHeaders = {}, sparqlEndpoint) {
     console.log(queryString);
   }
   return executeRawQuery(queryString, extraHeaders, sparqlEndpoint);
+}
+
+function maybeParseJSON(body) {
+  // Catch invalid JSON
+  try {
+    return JSON.parse(body);
+  } catch (ex) {
+    return null;
+  }
 }
 
 const exports = {
