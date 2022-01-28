@@ -10,7 +10,8 @@ const RETRY_MAX_ATTEMPTS = env.get('QUERY_RETRY_MAX_ATTEMPTS').default('5').asIn
 const RETRY_ON_HTTP_STATUS_CODES = env.get('QUERY_RETRY_ON_HTTP_STATUS_CODES').default('').asArray();
 const RETRY_ON_CONNECTION_ERRORS = env.get('QUERY_RETRY_ON_CONNECTION_ERRORS').default('ECONNRESET,ETIMEDOUT,EAI_AGAIN').asArray();
 
-function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint = process.env.MU_SPARQL_ENDPOINT ) {
+function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint) {
+  sparqlEndpoint = sparqlEndpoint || process.env.MU_SPARQL_ENDPOINT;
   let options = {
     requestDefaults: {
       headers: {
