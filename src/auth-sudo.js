@@ -5,10 +5,10 @@ import env from 'env-var';
 const LOG_SPARQL_QUERIES = process.env.LOG_SPARQL_QUERIES != undefined ? env.get('LOG_SPARQL_QUERIES').asBool() : env.get('LOG_SPARQL_ALL').asBool();
 const LOG_SPARQL_UPDATES = process.env.LOG_SPARQL_UPDATES != undefined ? env.get('LOG_SPARQL_UPDATES').asBool() : env.get('LOG_SPARQL_ALL').asBool();
 const DEBUG_AUTH_HEADERS = env.get('DEBUG_AUTH_HEADERS').asBool();
-const RETRY = env.get('QUERY_RETRY').default('false').asBool();
-const RETRY_MAX_ATTEMPTS = env.get('QUERY_RETRY_MAX_ATTEMPTS').default('5').asInt();
-const RETRY_ON_HTTP_STATUS_CODES = env.get('QUERY_RETRY_ON_HTTP_STATUS_CODES').default('').asArray();
-const RETRY_ON_CONNECTION_ERRORS = env.get('QUERY_RETRY_ON_CONNECTION_ERRORS').default('ECONNRESET,ETIMEDOUT,EAI_AGAIN').asArray();
+const RETRY = env.get('SUDO_QUERY_RETRY').default('false').asBool();
+const RETRY_MAX_ATTEMPTS = env.get('SUDO_QUERY_RETRY_MAX_ATTEMPTS').default('5').asInt();
+const RETRY_FOR_HTTP_STATUS_CODES = env.get('SUDO_QUERY_RETRY_FOR_HTTP_STATUS_CODES').default('').asArray();
+const RETRY_FOR_CONNECTION_ERRORS = env.get('SUDO_QUERY_RETRY_FOR_CONNECTION_ERRORS').default('ECONNRESET,ETIMEDOUT,EAI_AGAIN').asArray();
 
 function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint) {
   sparqlEndpoint = sparqlEndpoint || process.env.MU_SPARQL_ENDPOINT;
@@ -90,9 +90,9 @@ function mayRetry(error, attempt) {
   let mayRetry = false;
 
   if(RETRY && attempt < RETRY_MAX_ATTEMPTS) {
-    if(error.code && RETRY_ON_CONNECTION_ERRORS.includes(error.code)) {
+    if(error.code && RETRY_FOR_CONNECTION_ERRORS.includes(error.code)) {
       mayRetry = true;
-    } else if(error.httpStatus & RETRY_ON_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
+    } else if(error.httpStatus & RETRY_FOR_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
       mayRetry = true;
     }
   }
