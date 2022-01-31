@@ -92,7 +92,7 @@ function mayRetry(error, attempt) {
   if(RETRY && attempt < RETRY_MAX_ATTEMPTS) {
     if(error.code && RETRY_FOR_CONNECTION_ERRORS.includes(error.code)) {
       mayRetry = true;
-    } else if(error.httpStatus & RETRY_FOR_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
+    } else if(error.httpStatus && RETRY_FOR_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
       mayRetry = true;
     }
   }
