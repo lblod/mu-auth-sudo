@@ -57,7 +57,7 @@ async function executeRawQuery(queryString, extraHeaders = {}, connectionOptions
 
   } catch(ex) {
 
-    if(mayRetry(ex, attempt)) {
+    if(mayRetry(ex, attempt, connectionOptions)) {
 
       attempt += 1;
 
@@ -89,13 +89,15 @@ function maybeParseJSON(body) {
   }
 }
 
-function mayRetry(error, attempt) {
+function mayRetry(error, attempt, connectionOptions = {}) {
 
   console.log(`Checking retry allowed for error: ${error} and attempt: ${attempt}`);
 
   let mayRetry = false;
 
-  if(RETRY && attempt < RETRY_MAX_ATTEMPTS) {
+  if( !(RETRY || connectionOptions.mayRetry) ) {
+    mayRetry = false;
+  } else if(attempt < RETRY_MAX_ATTEMPTS) {
     if(error.code && RETRY_FOR_CONNECTION_ERRORS.includes(error.code)) {
       mayRetry = true;
     } else if(error.httpStatus && RETRY_FOR_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
