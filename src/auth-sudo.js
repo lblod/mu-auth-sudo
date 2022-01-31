@@ -10,8 +10,14 @@ const RETRY_MAX_ATTEMPTS = env.get('SUDO_QUERY_RETRY_MAX_ATTEMPTS').default('5')
 const RETRY_FOR_HTTP_STATUS_CODES = env.get('SUDO_QUERY_RETRY_FOR_HTTP_STATUS_CODES').default('').asArray();
 const RETRY_FOR_CONNECTION_ERRORS = env.get('SUDO_QUERY_RETRY_FOR_CONNECTION_ERRORS').default('ECONNRESET,ETIMEDOUT,EAI_AGAIN').asArray();
 
-function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint) {
-  sparqlEndpoint = sparqlEndpoint || process.env.MU_SPARQL_ENDPOINT;
+function sudoSparqlClient( extraHeaders = {}, connectionOptions = {} ) {
+
+  let sparqlEndpoint = process.env.MU_SPARQL_ENDPOINT;
+
+  if(connectionOptions) {
+    sparqlEndpoint = connectionOptions.sparqlEndpoint || sparqlEndpoint;
+  }
+
   let options = {
     requestDefaults: {
       headers: {
@@ -38,7 +44,7 @@ function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint) {
   return new SparqlClient(sparqlEndpoint, options);
 }
 
-async function executeRawQuery(queryString, extraHeaders = {}, sparqlEndpoint, attempt = 0) {
+async function executeRawQuery(queryString, extraHeaders = {}, connectionOptions = {}, attempt = 0) {
 
   if( LOG_SPARQL_QUERIES ) {
     console.log(queryString);
@@ -46,7 +52,7 @@ async function executeRawQuery(queryString, extraHeaders = {}, sparqlEndpoint, a
 
   try {
 
-    const response = await sudoSparqlClient(extraHeaders, sparqlEndpoint).query(queryString).executeRaw();
+    const response = await sudoSparqlClient(extraHeaders, connectionOptions).query(queryString).executeRaw();
     return maybeParseJSON(response.body);
 
   } catch(ex) {
@@ -59,19 +65,19 @@ async function executeRawQuery(queryString, extraHeaders = {}, sparqlEndpoint, a
       console.log(`Sleeping ${sleepTime} ms before next attempt`);
       await new Promise(r => setTimeout(r, sleepTime));
 
-      return await executeRawQuery(queryString, extraHeaders, sparqlEndpoint, attempt);
+      return await executeRawQuery(queryString, extraHeaders, connectionOptions, attempt);
 
     } else throw ex;
   }
 
 }
 
-function querySudo(queryString, extraHeaders = {}, sparqlEndpoint) {
-  return executeRawQuery(queryString, extraHeaders, sparqlEndpoint);
+function querySudo(queryString, extraHeaders = {}, connectionOptions = {}) {
+  return executeRawQuery(queryString, extraHeaders, connectionOptions);
 }
 
-function updateSudo(queryString, extraHeaders = {}, sparqlEndpoint) {
-  return executeRawQuery(queryString, extraHeaders, sparqlEndpoint);
+function updateSudo(queryString, extraHeaders = {}, connectionOptions = {}) {
+  return executeRawQuery(queryString, extraHeaders, connectionOptions);
 }
 
 function maybeParseJSON(body) {
