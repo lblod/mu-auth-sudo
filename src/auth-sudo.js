@@ -11,6 +11,7 @@ const RETRY = env.get('SUDO_QUERY_RETRY').default('false').asBool();
 const RETRY_MAX_ATTEMPTS = env.get('SUDO_QUERY_RETRY_MAX_ATTEMPTS').default('5').asInt();
 const RETRY_FOR_HTTP_STATUS_CODES = env.get('SUDO_QUERY_RETRY_FOR_HTTP_STATUS_CODES').default('').asArray();
 const RETRY_FOR_CONNECTION_ERRORS = env.get('SUDO_QUERY_RETRY_FOR_CONNECTION_ERRORS').default('ECONNRESET,ETIMEDOUT,EAI_AGAIN').asArray();
+const RETRY_TIMEOUT_INCREMENT_FACTOR = env.get('SUDO_QUERY_RETRY_TIMEOUT_INCREMENT_FACTOR').default('0.3').asFloat();
 
 function sudoSparqlClient( extraHeaders = {}, connectionOptions = {} ) {
 
@@ -114,7 +115,7 @@ function mayRetry(error, attempt, connectionOptions = {}) {
 
 function nextAttemptTimeout(attempt) {
   //expected to be milliseconds
-  return Math.round(Math.exp(0.3 * attempt + 10));
+  return Math.round(Math.exp(RETRY_TIMEOUT_INCREMENT_FACTOR * attempt + 10));
 }
 
 const exports = {
