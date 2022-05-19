@@ -70,7 +70,11 @@ async function executeRawQuery(queryString, extraHeaders = {}, connectionOptions
 
       return await executeRawQuery(queryString, extraHeaders, connectionOptions, attempt);
 
-    } else throw ex;
+    } else {
+      console.log(`Failed Query:
+                  ${queryString}`);
+      throw ex;
+    }
   }
 
 }
