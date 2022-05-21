@@ -35,21 +35,21 @@ function sudoSparqlClient( extraHeaders = {}, sparqlEndpoint) {
 }
 
 async function executeRawQuery(queryString, extraHeaders = {}, sparqlEndpoint) {
-
-  if( LOG_SPARQL_QUERIES ) {
-    console.log(queryString);
-  }
-
   const response = await sudoSparqlClient(extraHeaders, sparqlEndpoint).query(queryString).executeRaw();
   return maybeParseJSON(response.body);
-
 }
 
 function querySudo(queryString, extraHeaders = {}, sparqlEndpoint) {
+  if( LOG_SPARQL_QUERIES ) {
+    console.log(queryString);
+  }
   return executeRawQuery(queryString, extraHeaders, sparqlEndpoint);
 }
 
 function updateSudo(queryString, extraHeaders = {}, sparqlEndpoint) {
+  if( LOG_SPARQL_UPDATES ) {
+    console.log(queryString);
+  }
   return executeRawQuery(queryString, extraHeaders, sparqlEndpoint);
 }
 
