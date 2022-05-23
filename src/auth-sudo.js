@@ -80,10 +80,16 @@ async function executeRawQuery(queryString, extraHeaders = {}, connectionOptions
 }
 
 function querySudo(queryString, extraHeaders = {}, connectionOptions = {}) {
+  if( LOG_SPARQL_QUERIES ) {
+    console.log(queryString);
+  }
   return executeRawQuery(queryString, extraHeaders, connectionOptions);
 }
 
 function updateSudo(queryString, extraHeaders = {}, connectionOptions = {}) {
+  if( LOG_SPARQL_UPDATES ) {
+    console.log(queryString);
+  }
   return executeRawQuery(queryString, extraHeaders, connectionOptions);
 }
 
