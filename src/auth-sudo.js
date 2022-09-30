@@ -49,10 +49,6 @@ function sudoSparqlClient( extraHeaders = {}, connectionOptions = {} ) {
 
 async function executeRawQuery(queryString, extraHeaders = {}, connectionOptions = {}, attempt = 0) {
 
-  if( LOG_SPARQL_QUERIES ) {
-    console.log(queryString);
-  }
-
   try {
 
     const response = await sudoSparqlClient(extraHeaders, connectionOptions).query(queryString).executeRaw();
@@ -80,10 +76,16 @@ async function executeRawQuery(queryString, extraHeaders = {}, connectionOptions
 }
 
 function querySudo(queryString, extraHeaders = {}, connectionOptions = {}) {
+  if( LOG_SPARQL_QUERIES ) {
+    console.log(queryString);
+  }
   return executeRawQuery(queryString, extraHeaders, connectionOptions);
 }
 
 function updateSudo(queryString, extraHeaders = {}, connectionOptions = {}) {
+  if( LOG_SPARQL_UPDATES ) {
+    console.log(queryString);
+  }
   return executeRawQuery(queryString, extraHeaders, connectionOptions);
 }
 
