@@ -49,10 +49,6 @@ function sudoSparqlClient( extraHeaders = {}, connectionOptions = {} ) {
 
 async function executeRawQuery(queryString, extraHeaders = {}, connectionOptions = {}, attempt = 0) {
 
-  if( LOG_SPARQL_QUERIES ) {
-    console.log(queryString);
-  }
-
   try {
 
     const response = await sudoSparqlClient(extraHeaders, connectionOptions).query(queryString).executeRaw();
