@@ -1,0 +1,13 @@
+pipeline:
+  install:
+    image: node:14
+    commands:
+      - npm ci
+  lint:
+    image: node:14
+    commands:
+      - npm run lint
+when:
+  event: pull_request
+
+    
