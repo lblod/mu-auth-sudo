@@ -1,0 +1,146 @@
+import httpContext from 'express-http-context';
+import env from 'env-var';
+import fetch, { Headers, Body } from 'node-fetch';
+import * as DigestFetch from "digest-fetch"
+
+const SPARQL_ENDPOINT : string = env.get('MU_SPARQL_ENDPOINT').required().asString();
+const LOG_SPARQL_ALL : string = env.get('LOG_SPARQL_ALL').required().asString();
+const LOG_SPARQL_QUERIES : boolean = env.get('LOG_SPARQL_QUERIES').default(LOG_SPARQL_ALL).asBool();
+const LOG_SPARQL_UPDATES : boolean = env.get('LOG_SPARQL_UPDATES').default(LOG_SPARQL_ALL).asBool();
+const DEBUG_AUTH_HEADERS : boolean = env.get('DEBUG_AUTH_HEADERS').required().asBool();
+
+// The following configuration options are considered optional, but may be overriden as a temporary workaround for issues. Thus, a last resort.
+const RETRY = env.get('SUDO_QUERY_RETRY').default('false').asBool();
+const RETRY_MAX_ATTEMPTS = env.get('SUDO_QUERY_RETRY_MAX_ATTEMPTS').default('5').asInt();
+const RETRY_FOR_HTTP_STATUS_CODES = env.get('SUDO_QUERY_RETRY_FOR_HTTP_STATUS_CODES').default('').asArray();
+const RETRY_FOR_CONNECTION_ERRORS = env.get('SUDO_QUERY_RETRY_FOR_CONNECTION_ERRORS').default('ECONNRESET,ETIMEDOUT,EAI_AGAIN').asArray();
+const RETRY_TIMEOUT_INCREMENT_FACTOR = env.get('SUDO_QUERY_RETRY_TIMEOUT_INCREMENT_FACTOR').default('0.3').asFloat();
+
+export interface ConnectionOptions {
+  sparqlEndpoint?: string
+  authUser?: string
+  authPassword?: string
+  authType?: "basic"|"digest"
+  mayRetry?: boolean
+}
+
+export interface SPARQLResult {
+  head: Record<string,any>
+  results?: {
+    distinct: boolean
+    ordered: boolean
+    bindings: Array<Record<string,any>>
+  }
+  boolean?: boolean
+}
+
+function defaultHeaders() : Headers {
+  const headers = new Headers();
+  headers.append('content-type', 'application/x-www-form-urlencoded');
+  headers.append('mu-auth-sudo', 'true');
+  headers.append('Accept', 'application/sparql-results+json');
+  if (httpContext.get('request')) {
+    headers.append('mu-session-id', httpContext.get('request').get('mu-session-id'));
+    headers.append('mu-call-id', httpContext.get('request').get('mu-call-id'));
+  }
+  return headers;
+}
+
+
+async function executeRawQuery(queryString: string, extraHeaders: Record<string,string> = {}, connectionOptions: ConnectionOptions = {}, attempt = 0): Promise<Record<string,any>|Array<any>> {
+  const sparqlEndpoint = connectionOptions.sparqlEndpoint ?? SPARQL_ENDPOINT;
+  const headers = defaultHeaders();
+  for (const key in Object.keys(extraHeaders)) {
+    headers.append(key, extraHeaders[key]);
+  }
+  if( DEBUG_AUTH_HEADERS ) {
+    console.log(`Headers set on SPARQL client: ${JSON.stringify(headers)}`);
+  }
+
+  try {
+    // note that URLSearchParams is used because it correctly encodes for form-urlencoded
+    const formData = new URLSearchParams();
+    formData.set("query", queryString);
+    headers.append('Content-Length', formData.toString().length.toString());
+
+    if (connectionOptions.authUser && connectionOptions.authPassword ) {
+      const client = new DigestFetch(connectionOptions.authUser, connectionOptions.authPassword, { basic: connectionOptions.authType === 'basic'});
+    }
+    const response = await fetch(sparqlEndpoint, {
+      method: 'POST',
+      body: formData.toString(),
+      headers
+    });
+    return await response.json();
+  } catch(ex) {
+
+    if(mayRetry(ex, attempt, connectionOptions)) {
+
+      attempt += 1;
+
+      const sleepTime = nextAttemptTimeout(attempt);
+      console.log(`Sleeping ${sleepTime} ms before next attempt`);
+      await new Promise(r => setTimeout(r, sleepTime));
+
+      return await executeRawQuery(queryString, extraHeaders, connectionOptions, attempt);
+
+    } else {
+      console.log(`Failed Query:
+                  ${queryString}`);
+      throw ex;
+    }
+  }
+
+}
+
+function querySudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
+  if( LOG_SPARQL_QUERIES ) {
+    console.log(queryString);
+  }
+  return executeRawQuery(queryString, extraHeaders, connectionOptions);
+}
+
+function updateSudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
+  if( LOG_SPARQL_UPDATES ) {
+    console.log(queryString);
+  }
+  return executeRawQuery(queryString, extraHeaders, connectionOptions);
+}
+
+function mayRetry(error: any, attempt: number, connectionOptions: ConnectionOptions = {}) {
+
+  console.log(`Checking retry allowed for error: ${error} and attempt: ${attempt}`);
+
+  let mayRetry = false;
+
+  if( !(RETRY || connectionOptions.mayRetry) ) {
+    mayRetry = false;
+  } else if(attempt < RETRY_MAX_ATTEMPTS) {
+    if(error.code && RETRY_FOR_CONNECTION_ERRORS.includes(error.code)) {
+      mayRetry = true;
+    } else if(error.httpStatus && RETRY_FOR_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
+      mayRetry = true;
+    }
+  }
+
+  console.log(`Retry allowed? ${mayRetry}`);
+
+  return mayRetry;
+}
+
+function nextAttemptTimeout(attempt: number) {
+  //expected to be milliseconds
+  return Math.round(Math.exp(RETRY_TIMEOUT_INCREMENT_FACTOR * attempt + 10));
+}
+
+const defaultExport = {
+  querySudo,
+  updateSudo
+};
+
+export default defaultExport;
+
+export {
+  querySudo,
+  updateSudo
+}
