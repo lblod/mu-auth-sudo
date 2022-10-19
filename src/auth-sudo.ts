@@ -29,7 +29,7 @@ export interface SPARQLResult {
   results?: {
     distinct: boolean
     ordered: boolean
-    bindings: Array<Record<string,any>>
+    bindings: Record<string,any>[]
   }
   boolean?: boolean
 }
@@ -47,10 +47,10 @@ function defaultHeaders() : Headers {
 }
 
 
-async function executeRawQuery(queryString: string, extraHeaders: Record<string,string> = {}, connectionOptions: ConnectionOptions = {}, attempt = 0): Promise<Record<string,any>|Array<any>> {
+async function executeRawQuery(queryString: string, extraHeaders: Record<string,string> = {}, connectionOptions: ConnectionOptions = {}, attempt = 0): Promise<SPARQLResult> {
   const sparqlEndpoint = connectionOptions.sparqlEndpoint ?? SPARQL_ENDPOINT;
   const headers = defaultHeaders();
-  for (const key in Object.keys(extraHeaders)) {
+  for (const key of Object.keys(extraHeaders)) {
     headers.append(key, extraHeaders[key]);
   }
   if( DEBUG_AUTH_HEADERS ) {
@@ -137,7 +137,7 @@ function mayRetry(error: any, attempt: number, connectionOptions: ConnectionOpti
 }
 
 function nextAttemptTimeout(attempt: number) {
-  //expected to be milliseconds
+  // expected to be milliseconds
   return Math.round(Math.exp(RETRY_TIMEOUT_INCREMENT_FACTOR * attempt + 10));
 }
 
