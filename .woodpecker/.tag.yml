@@ -1,0 +1,13 @@
+pipeline:
+  install:
+    image: node:14
+    commands:
+      - npm ci
+  release:
+     image: plugins/npm
+     settings:
+       token:
+         from_secret: npm_access_token
+when:
+  event: tag
+  tag: v*
