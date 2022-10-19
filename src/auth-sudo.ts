@@ -36,12 +36,12 @@ export interface SPARQLResult {
 
 function defaultHeaders() : Headers {
   const headers = new Headers();
-  headers.append('content-type', 'application/x-www-form-urlencoded');
-  headers.append('mu-auth-sudo', 'true');
-  headers.append('Accept', 'application/sparql-results+json');
+  headers.set('content-type', 'application/x-www-form-urlencoded');
+  headers.set('mu-auth-sudo', 'true');
+  headers.set('Accept', 'application/sparql-results+json');
   if (httpContext.get('request')) {
-    headers.append('mu-session-id', httpContext.get('request').get('mu-session-id'));
-    headers.append('mu-call-id', httpContext.get('request').get('mu-call-id'));
+    headers.set('mu-session-id', httpContext.get('request').get('mu-session-id'));
+    headers.set('mu-call-id', httpContext.get('request').get('mu-call-id'));
   }
   return headers;
 }
@@ -54,7 +54,11 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
     headers.append(key, extraHeaders[key]);
   }
   if( DEBUG_AUTH_HEADERS ) {
-    console.log(`Headers set on SPARQL client: ${JSON.stringify(headers)}`);
+    const stringifiedHeaders = Array.from(headers.entries())
+      .filter( ([key,value]) => key.startsWith('mu-'))
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("\n");
+    console.log(`Headers set on SPARQL client: ${stringifiedHeaders}`);
   }
 
   try {
