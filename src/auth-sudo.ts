@@ -63,14 +63,22 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
     formData.set("query", queryString);
     headers.append('Content-Length', formData.toString().length.toString());
 
+    let response;
     if (connectionOptions.authUser && connectionOptions.authPassword ) {
       const client = new DigestFetch(connectionOptions.authUser, connectionOptions.authPassword, { basic: connectionOptions.authType === 'basic'});
+      response = await client.fetch(sparqlEndpoint, {
+        method: 'POST',
+        body: formData.toString(),
+        headers
+      });
     }
-    const response = await fetch(sparqlEndpoint, {
-      method: 'POST',
-      body: formData.toString(),
-      headers
-    });
+    else {
+      response = await fetch(sparqlEndpoint, {
+        method: 'POST',
+        body: formData.toString(),
+        headers
+      });
+    }
     return await response.json();
   } catch(ex) {
 
