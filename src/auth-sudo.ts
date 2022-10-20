@@ -34,6 +34,17 @@ export interface SPARQLResult {
   boolean?: boolean
 }
 
+export class HTTPResponseError extends Error {
+    httpStatus: number;
+    httpStatusText: string;
+    constructor(response : Response) {
+        super(`HTTP Error Response: ${response.status} ${response.statusText}`);
+        this.httpStatus = response.status;
+        this.httpStatusText = response.statusText;
+    }
+
+}
+
 function defaultHeaders() : Headers {
   const headers = new Headers();
   headers.set('content-type', 'application/x-www-form-urlencoded');
@@ -83,7 +94,12 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
         headers
       });
     }
-    return await maybeJSON(response);
+    if( response.ok ) {
+      return await maybeJSON(response);
+    }
+    else {
+      throw new HTTPResponseError(response);
+    }
   } catch(ex) {
 
     if(mayRetry(ex, attempt, connectionOptions)) {
@@ -113,14 +129,14 @@ async function maybeJSON(response: Response) : Promise<SPARQLResult | null> {
     }
 }
 
-function querySudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
+export function querySudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
   if( LOG_SPARQL_QUERIES ) {
     console.log(queryString);
   }
   return executeRawQuery(queryString, extraHeaders, connectionOptions);
 }
 
-function updateSudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
+export function updateSudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
   if( LOG_SPARQL_UPDATES ) {
     console.log(queryString);
   }
@@ -159,8 +175,3 @@ const defaultExport = {
 };
 
 export default defaultExport;
-
-export {
-  querySudo,
-  updateSudo
-}
