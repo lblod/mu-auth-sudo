@@ -5,7 +5,7 @@
   "main": "dist/auth-sudo.js",
   "scripts": {
     "build": "tsc",
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "lint": "tslint -p tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
     "release": "release-it"
