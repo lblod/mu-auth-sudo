@@ -1,6 +1,6 @@
 import httpContext from 'express-http-context';
 import env from 'env-var';
-import fetch, { Headers, Body } from 'node-fetch';
+import fetch, { Headers, Response } from 'node-fetch';
 import DigestFetch from "digest-fetch"
 
 const SPARQL_ENDPOINT : string = env.get('MU_SPARQL_ENDPOINT').required().asString();
@@ -47,7 +47,7 @@ function defaultHeaders() : Headers {
 }
 
 
-async function executeRawQuery(queryString: string, extraHeaders: Record<string,string> = {}, connectionOptions: ConnectionOptions = {}, attempt = 0): Promise<SPARQLResult> {
+async function executeRawQuery(queryString: string, extraHeaders: Record<string,string> = {}, connectionOptions: ConnectionOptions = {}, attempt = 0): Promise<SPARQLResult|null> {
   const sparqlEndpoint = connectionOptions.sparqlEndpoint ?? SPARQL_ENDPOINT;
   const headers = defaultHeaders();
   for (const key of Object.keys(extraHeaders)) {
@@ -55,7 +55,7 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
   }
   if( DEBUG_AUTH_HEADERS ) {
     const stringifiedHeaders = Array.from(headers.entries())
-      .filter( ([key,value]) => key.startsWith('mu-'))
+      .filter( ([key]) => key.startsWith('mu-'))
       .map(([key, value]) => `${key}: ${value}`)
       .join("\n");
     console.log(`Headers set on SPARQL client: ${stringifiedHeaders}`);
@@ -83,7 +83,7 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
         headers
       });
     }
-    return await response.json();
+    return await maybeJSON(response);
   } catch(ex) {
 
     if(mayRetry(ex, attempt, connectionOptions)) {
@@ -102,7 +102,15 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
       throw ex;
     }
   }
+}
 
+async function maybeJSON(response: Response) : Promise<SPARQLResult | null> {
+    try {
+        return (await response.json())
+    }
+    catch(e) {
+        return null;
+    }
 }
 
 function querySudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
