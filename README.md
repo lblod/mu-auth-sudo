@@ -2,12 +2,12 @@
 NPM package for a SPARQL client for mu.semte.ch that overrules access rights in queries through a mu-auth-sudo header.
 
 ## Usage
-```
+```bash
 npm install @lblod/mu-auth-sudo
 ```
 
 Include the following in your code
-```
+```js
 import { querySudo as query, updateSudo as update } from '@lblod/mu-auth-sudo';
 
 
@@ -26,9 +26,20 @@ await update(updateString, extraHeaders);
 
 // With custom connection options (this should be exceptional, make sure you know what you're doing)
 
-const connectionOptions = { sparqlEndpoint: 'http://the.custom.endpoint/sparql', mayRetry: true };
+const connectionOptions = { sparqlEndpoint: 'http://the.custom.endpoint/sparql', mayRetry: true,  };
 
 await update(updateString, extraHeaders, connectionOptions);
+
+// Authentication via digest or basic auth
+const connectionOptions = { 
+  sparqlEndpoint: 'http://the.custom.endpoint/sparql', 
+  authUser: "dba",
+  authPassword: "mypass",
+  authType: "digest"
+};
+
+await update(updateString, extraHeaders, connectionOptions);
+
 ```
 
 ## Logging
