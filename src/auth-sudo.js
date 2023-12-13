@@ -110,9 +110,8 @@ function mayRetry(error, attempt, connectionOptions = {}) {
   }
   else if(attempt < RETRY_MAX_ATTEMPTS) {
     if(SUDO_QUERY_RETRY_NON_RESTRICTIVE) {
-      mayRetry =true;
-    }
-    else if(error.code && RETRY_FOR_CONNECTION_ERRORS.includes(error.code)) {
+      mayRetry = true;
+    } else if(error.code && RETRY_FOR_CONNECTION_ERRORS.includes(error.code)) {
       mayRetry = true;
     } else if(error.httpStatus && RETRY_FOR_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
       mayRetry = true;
