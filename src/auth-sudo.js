@@ -2,6 +2,7 @@ import httpContext from 'express-http-context';
 import { SparqlClient } from 'sparql-client-2';
 import env from 'env-var';
 
+const SUDO_QUERY_RETRY_NON_RESTRICTIVE = env.get('SUDO_QUERY_RETRY_NON_RESTRICTIVE').default('false').asBool();
 const LOG_SPARQL_QUERIES = process.env.LOG_SPARQL_QUERIES != undefined ? env.get('LOG_SPARQL_QUERIES').asBool() : env.get('LOG_SPARQL_ALL').asBool();
 const LOG_SPARQL_UPDATES = process.env.LOG_SPARQL_UPDATES != undefined ? env.get('LOG_SPARQL_UPDATES').asBool() : env.get('LOG_SPARQL_ALL').asBool();
 const DEBUG_AUTH_HEADERS = env.get('DEBUG_AUTH_HEADERS').asBool();
@@ -106,8 +107,12 @@ function mayRetry(error, attempt, connectionOptions = {}) {
 
   if( !(RETRY || connectionOptions.mayRetry) ) {
     mayRetry = false;
-  } else if(attempt < RETRY_MAX_ATTEMPTS) {
-    if(error.code && RETRY_FOR_CONNECTION_ERRORS.includes(error.code)) {
+  }
+  else if(attempt < RETRY_MAX_ATTEMPTS) {
+    if(SUDO_QUERY_RETRY_NON_RESTRICTIVE) {
+      mayRetry =true;
+    }
+    else if(error.code && RETRY_FOR_CONNECTION_ERRORS.includes(error.code)) {
       mayRetry = true;
     } else if(error.httpStatus && RETRY_FOR_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
       mayRetry = true;
