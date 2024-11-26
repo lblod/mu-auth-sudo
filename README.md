@@ -1,12 +1,15 @@
 # mu-auth-sudo
+
 NPM package for a SPARQL client for mu.semte.ch that overrules access rights in queries through a mu-auth-sudo header.
 
 ## Usage
+
 ```
 npm install @lblod/mu-auth-sudo
 ```
 
 Include the following in your code
+
 ```
 import { querySudo as query, updateSudo as update } from '@lblod/mu-auth-sudo';
 
@@ -43,11 +46,13 @@ The verbosity of logging can be configured as in the [javascript template](https
 Following values are considered true: [`"true"`, `"TRUE"`, `"1"`].
 
 ## Retrying
+
 You can tweak system-wide retry parameters. These should be considered internal, but tweaking them may help in extreme scenarios. Use with extreme caution.
 
 - `SUDO_QUERY_RETRY`: System-wide configuration to enable the retry-mechanism (default `'false'`).
-                        Warning: this overules eventual source-code specifications (i.e. `connectionOptions = { mayRetry: false }`), so make sure you know what you're doing.
+  Warning: this overules eventual source-code specifications (i.e. `connectionOptions = { mayRetry: false }`), so make sure you know what you're doing.
 - `SUDO_QUERY_RETRY_MAX_ATTEMPTS`: Specfiy the number of max retry attempts (default: 5)
 - `SUDO_QUERY_RETRY_FOR_HTTP_STATUS_CODES`: Specify what returned HTTP status from the database are allowed for retry. (default: `''`). Overriding this list should be considered case by case.
 - `SUDO_QUERY_RETRY_FOR_CONNECTION_ERRORS`: Specify what connection errors are allowed for retry. (default: `'ECONNRESET,ETIMEDOUT,EAI_AGAIN'`)
 - `SUDO_QUERY_RETRY_TIMEOUT_INCREMENT_FACTOR`: Specify the factor applied to the timeout before the next attempt. Check implementation to see how it is calculated. (default: `'0.3'`)
+- `SUDO_QUERY_RETRY_NON_RESTRICTIVE`: allow retry no matter what status code or connection errors returned by the service.
