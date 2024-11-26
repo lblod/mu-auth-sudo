@@ -121,7 +121,7 @@ function mayRetry(error, attempt, connectionOptions = {}) {
 
 function nextAttemptTimeout(attempt) {
   //expected to be milliseconds
-  return Math.round(Math.exp(RETRY_TIMEOUT_INCREMENT_FACTOR * attempt + 10));
+  return Math.round(RETRY_TIMEOUT_INCREMENT_FACTOR * Math.exp(attempt + 10));
 }
 
 const exports = {
