@@ -43,7 +43,10 @@
     "express-http-context": "~1.2.4"
   },
   "volta": {
-    "node": "14.20.1"
+    "node": "22.22.0"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "files": [
     "dist/**/*"
