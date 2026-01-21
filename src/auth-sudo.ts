@@ -1,6 +1,5 @@
 import httpContext from 'express-http-context';
 import env from 'env-var';
-import fetch, { Headers, Response } from 'node-fetch';
 import DigestFetch from "digest-fetch"
 
 const SPARQL_ENDPOINT : string = env.get('MU_SPARQL_ENDPOINT').required().asString();
