@@ -24,15 +24,33 @@ export interface ConnectionOptions {
   mayRetry?: boolean
 }
 
-export interface SPARQLResult {
-  head: Record<string,any>
-  results?: {
-    distinct: boolean
-    ordered: boolean
-    bindings: Record<string,any>[]
-  }
-  boolean?: boolean
-}
+export type SparqlQueryResultConfig = Array<string>;
+export type SparqlAskResultConfig = 'ask';
+export type BindingObject<QueryVars extends SparqlQueryResultConfig = SparqlQueryResultConfig> = {
+  [Prop in QueryVars[number]]: {
+    type: string;
+    value: string;
+  };
+};
+export type SparqlResultConfig = SparqlQueryResultConfig | SparqlAskResultConfig;
+
+export type SPARQLResult<
+  QueryOrAskConf extends SparqlResultConfig = SparqlQueryResultConfig,
+> = QueryOrAskConf extends SparqlQueryResultConfig
+  ? {
+      head: {
+	vars: string[];
+	link: [];
+      };
+      results: {
+	bindings: BindingObject<QueryOrAskConf>[];
+      };
+    }
+  : {
+      head: unknown;
+      boolean: boolean;
+    };
+
 
 export class HTTPResponseError extends Error {
     httpStatus: number;
@@ -58,7 +76,7 @@ function defaultHeaders() : Headers {
 }
 
 
-async function executeRawQuery(queryString: string, extraHeaders: Record<string,string> = {}, connectionOptions: ConnectionOptions = {}, attempt = 0): Promise<SPARQLResult|null> {
+async function executeRawQuery<C extends SparqlResultConfig = SparqlQueryResultConfig>(queryString: string, extraHeaders: Record<string,string> = {}, connectionOptions: ConnectionOptions = {}, attempt = 0): Promise<SPARQLResult<C>|null> {
   const sparqlEndpoint = connectionOptions.sparqlEndpoint ?? SPARQL_ENDPOINT;
   const headers = defaultHeaders();
   for (const key of Object.keys(extraHeaders)) {
@@ -95,7 +113,7 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
       });
     }
     if( response.ok ) {
-      return await maybeJSON(response);
+      return await maybeJSON<SPARQLResult<C>>(response);
     }
     else {
       throw new HTTPResponseError(response);
@@ -120,7 +138,7 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
   }
 }
 
-async function maybeJSON(response: Response) : Promise<SPARQLResult | null> {
+async function maybeJSON<JsonShape>(response: Response) : Promise<JsonShape | null> {
     try {
         return (await response.json())
     }
@@ -129,18 +147,18 @@ async function maybeJSON(response: Response) : Promise<SPARQLResult | null> {
     }
 }
 
-export function querySudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
+export function querySudo<C extends SparqlResultConfig = SparqlQueryResultConfig>(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
   if( LOG_SPARQL_QUERIES ) {
     console.log(queryString);
   }
-  return executeRawQuery(queryString, extraHeaders, connectionOptions);
+  return executeRawQuery<C>(queryString, extraHeaders, connectionOptions);
 }
 
-export function updateSudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
+export function updateSudo<C extends SparqlResultConfig = SparqlQueryResultConfig>(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
   if( LOG_SPARQL_UPDATES ) {
     console.log(queryString);
   }
-  return executeRawQuery(queryString, extraHeaders, connectionOptions);
+  return executeRawQuery<C>(queryString, extraHeaders, connectionOptions);
 }
 
 function mayRetry(error: any, attempt: number, connectionOptions: ConnectionOptions = {}) {
