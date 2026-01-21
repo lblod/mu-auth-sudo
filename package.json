@@ -3,6 +3,7 @@
   "version": "1.0.0-beta.4",
   "description": "this package provides an alternative sparql client for the mu-javascript-template that has sudo rights.",
   "main": "dist/auth-sudo.js",
+  "types": "dist/auth-sudo.d.ts",
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
@@ -43,7 +44,10 @@
     "express-http-context": "~1.2.4"
   },
   "volta": {
-    "node": "14.20.1"
+    "node": "22.22.0"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "files": [
     "dist/**/*"
