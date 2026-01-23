@@ -121,7 +121,7 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
 
 async function maybeJSON(response: Response) : Promise<SPARQLResult | null> {
     try {
-        return (await response.json())
+        return (await response.json()) as SPARQLResult;
     }
     catch(e) {
         return null;
