@@ -1,6 +1,5 @@
 import httpContext from 'express-http-context';
 import env from 'env-var';
-import fetch, { Headers, Response } from 'node-fetch';
 import DigestFetch from "digest-fetch"
 
 const SPARQL_ENDPOINT : string = env.get('MU_SPARQL_ENDPOINT').required().asString();
@@ -140,7 +139,7 @@ async function executeRawQuery<C extends SparqlResultConfig = SparqlQueryResultC
 
 async function maybeJSON<JsonShape>(response: Response) : Promise<JsonShape | null> {
     try {
-        return (await response.json())
+        return (await response.json()) as SPARQLResult;
     }
     catch(e) {
         return null;
@@ -165,21 +164,21 @@ function mayRetry(error: any, attempt: number, connectionOptions: ConnectionOpti
 
   console.log(`Checking retry allowed for error: ${error} and attempt: ${attempt}`);
 
-  let mayRetry = false;
+  let shouldRetry = false;
 
   if( !(RETRY || connectionOptions.mayRetry) ) {
-    mayRetry = false;
+    shouldRetry = false;
   } else if(attempt < RETRY_MAX_ATTEMPTS) {
     if(error.code && RETRY_FOR_CONNECTION_ERRORS.includes(error.code)) {
-      mayRetry = true;
+      shouldRetry = true;
     } else if(error.httpStatus && RETRY_FOR_HTTP_STATUS_CODES.includes(`${error.httpStatus}`)) {
-      mayRetry = true;
+      shouldRetry = true;
     }
   }
 
-  console.log(`Retry allowed? ${mayRetry}`);
+  console.log(`Retry allowed? ${shouldRetry}`);
 
-  return mayRetry;
+  return shouldRetry;
 }
 
 function nextAttemptTimeout(attempt: number) {
