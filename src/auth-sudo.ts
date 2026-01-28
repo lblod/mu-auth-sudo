@@ -139,7 +139,7 @@ async function executeRawQuery<C extends SparqlResultConfig = SparqlQueryResultC
 
 async function maybeJSON<JsonShape>(response: Response) : Promise<JsonShape | null> {
     try {
-        return (await response.json()) as SPARQLResult;
+        return await response.json() as JsonShape;
     }
     catch(e) {
         return null;
