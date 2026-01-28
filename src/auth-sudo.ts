@@ -98,11 +98,14 @@ async function executeRawQuery<C extends SparqlResultConfig = SparqlQueryResultC
     let response;
     if (connectionOptions.authUser && connectionOptions.authPassword ) {
       const client = new DigestFetch(connectionOptions.authUser, connectionOptions.authPassword, { basic: connectionOptions.authType === 'basic'});
+      // the cast fixes a weird inconsistency between digest-fetch's declared return type
+      // it declares it either returns the browser's version of Response or node-fetch's, and 
+      // I think those are slightly different from the real Response type in node
       response = await client.fetch(sparqlEndpoint, {
         method: 'POST',
         body: formData.toString(),
         headers
-      });
+      }) as Response;
     }
     else {
       response = await fetch(sparqlEndpoint, {
