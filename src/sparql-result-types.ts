@@ -1,9 +1,9 @@
 
-export type Binding<B extends Array<string>> = {
+export type Binding<B extends string[]> = {
   [Key in B[number]]: {type: string, value: string}
 }
 
-export type SPARQLQueryResult<B extends Array<string>> = {
+export type SPARQLQueryResult<B extends string[]> = {
   head: {
     link: unknown[],
     vars: B
