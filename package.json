@@ -1,6 +1,6 @@
 {
   "name": "@lblod/mu-auth-sudo",
-  "version": "1.0.0-beta.5",
+  "version": "1.0.0",
   "description": "this package provides an alternative sparql client for the mu-javascript-template that has sudo rights.",
   "main": "dist/auth-sudo.js",
   "types": "dist/auth-sudo.d.ts",
