@@ -1,6 +1,8 @@
 import httpContext from 'express-http-context';
 import env from 'env-var';
-import DigestFetch from "digest-fetch"
+import DigestFetch from "digest-fetch";
+export * from './sparql-result-types';
+import type { SPARQLQueryConfig, SPARQLResult } from './sparql-result-types';
 
 const SPARQL_ENDPOINT : string = env.get('MU_SPARQL_ENDPOINT').required().asString();
 const LOG_SPARQL_ALL : string = env.get('LOG_SPARQL_ALL').required().asString();
@@ -21,16 +23,6 @@ export interface ConnectionOptions {
   authPassword?: string
   authType?: "basic"|"digest"
   mayRetry?: boolean
-}
-
-export interface SPARQLResult {
-  head: Record<string,any>
-  results?: {
-    distinct: boolean
-    ordered: boolean
-    bindings: Record<string,any>[]
-  }
-  boolean?: boolean
 }
 
 export class HTTPResponseError extends Error {
@@ -57,7 +49,7 @@ function defaultHeaders() : Headers {
 }
 
 
-async function executeRawQuery(queryString: string, extraHeaders: Record<string,string> = {}, connectionOptions: ConnectionOptions = {}, attempt = 0): Promise<SPARQLResult|null> {
+async function executeRawQuery<C extends SPARQLQueryConfig>(queryString: string, extraHeaders: Record<string,string> = {}, connectionOptions: ConnectionOptions = {}, attempt = 0): Promise<SPARQLResult<C>|null> {
   const sparqlEndpoint = connectionOptions.sparqlEndpoint ?? SPARQL_ENDPOINT;
   const headers = defaultHeaders();
   for (const key of Object.keys(extraHeaders)) {
@@ -97,7 +89,7 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
       });
     }
     if( response.ok ) {
-      return await maybeJSON(response);
+      return await maybeJSON<SPARQLResult<C>>(response);
     }
     else {
       throw new HTTPResponseError(response);
@@ -122,27 +114,27 @@ async function executeRawQuery(queryString: string, extraHeaders: Record<string,
   }
 }
 
-async function maybeJSON(response: Response) : Promise<SPARQLResult | null> {
+async function maybeJSON<JsonShape>(response: Response) : Promise<JsonShape | null> {
     try {
-        return (await response.json()) as SPARQLResult;
+        return await response.json() as JsonShape;
     }
     catch(e) {
         return null;
     }
 }
 
-export function querySudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
+export function querySudo<C extends SPARQLQueryConfig = string[]>(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
   if( LOG_SPARQL_QUERIES ) {
     console.log(queryString);
   }
-  return executeRawQuery(queryString, extraHeaders, connectionOptions);
+  return executeRawQuery<C>(queryString, extraHeaders, connectionOptions);
 }
 
-export function updateSudo(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
+export function updateSudo<C extends SPARQLQueryConfig = string[]>(queryString: string, extraHeaders : Record<string,string> = {}, connectionOptions : ConnectionOptions = {}) {
   if( LOG_SPARQL_UPDATES ) {
     console.log(queryString);
   }
-  return executeRawQuery(queryString, extraHeaders, connectionOptions);
+  return executeRawQuery<C>(queryString, extraHeaders, connectionOptions);
 }
 
 function mayRetry(error: any, attempt: number, connectionOptions: ConnectionOptions = {}) {
