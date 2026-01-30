@@ -1,6 +1,7 @@
 import httpContext from 'express-http-context';
 import env from 'env-var';
-import DigestFetch from "digest-fetch"
+import DigestFetch from "digest-fetch";
+export * from './sparql-result-types';
 import type { SPARQLQueryConfig, SPARQLResult } from './sparql-result-types';
 
 const SPARQL_ENDPOINT : string = env.get('MU_SPARQL_ENDPOINT').required().asString();
