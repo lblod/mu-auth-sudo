@@ -25,41 +25,41 @@ export async function sparqlUpdate(queryStr: string, opts?: ClientOptions) {
 }
 
 export function mkSelect(presetOpts?: ClientOptions) { 
-  return function (queryStr:string, opts?: ClientOptions) {
+  return (queryStr:string, opts?: ClientOptions) => {
     return sparqlSelect(queryStr, {...presetOpts, ...opts});
   }
 }
 
 export function mkAsk(presetOpts?: ClientOptions) { 
-  return function (queryStr:string, opts?: ClientOptions) {
+  return (queryStr:string, opts?: ClientOptions) => {
     return sparqlAsk(queryStr, {...presetOpts, ...opts});
   }
 }
 export function mkConstruct(presetOpts?: ClientOptions) { 
-  return function (queryStr:string, opts?: ClientOptions) {
+  return (queryStr:string, opts?: ClientOptions) => {
     return sparqlConstruct(queryStr, {...presetOpts, ...opts});
   }
 }
 export function mkDescribe(presetOpts?: ClientOptions) { 
-  return function (queryStr:string, opts?: ClientOptions) {
+  return (queryStr:string, opts?: ClientOptions) => {
     return sparqlDescribe(queryStr, {...presetOpts, ...opts});
   }
 }
 export function mkUpdate(presetOpts?: ClientOptions) { 
-  return function (queryStr:string, opts?: ClientOptions) {
+  return (queryStr:string, opts?: ClientOptions) => {
     return sparqlUpdate(queryStr, {...presetOpts, ...opts});
   }
 }
 /**
-  * Create a bundle of sparql query functions with preconfigured options. Each function still allows for all its connectionOptions to be overridden.
-  * This allows for a consumer to easily make multiple clients for different endpoints, without having to explicitly pass the endpoint for every invocation.
-  *
-  * Usage example: 
-  * ```ts
-  * const fooClient = sparqlClient({sparqlEndpoint: 'http://foo.com/sparql'})
-  * const result = fooClient.select('SELECT * WHERE {?s ?p ?v.}')
-  * ```
-  */
+ * Create a bundle of sparql query functions with preconfigured options. Each function still allows for all its connectionOptions to be overridden.
+ * This allows for a consumer to easily make multiple clients for different endpoints, without having to explicitly pass the endpoint for every invocation.
+ *
+ * Usage example: 
+ * ```ts
+ * const fooClient = sparqlClient({sparqlEndpoint: 'http://foo.com/sparql'})
+ * const result = fooClient.select('SELECT * WHERE {?s ?p ?v.}')
+ * ```
+ */
 export function sparqlClient(presetOpts?: ClientOptions) {
   return {
     select: mkSelect(presetOpts),
