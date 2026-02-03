@@ -4,13 +4,17 @@ import DigestFetch from "digest-fetch";
 export * from './sparql-result-types';
 import type { SPARQLQueryConfig, SPARQLResult } from './sparql-result-types';
 
-const SPARQL_ENDPOINT : string = env.get('MU_SPARQL_ENDPOINT').required().asString();
-const LOG_SPARQL_ALL : string = env.get('LOG_SPARQL_ALL').required().asString();
+// The query methods accept an endpoint parameter in the connectionOptions, so we should not make this required for consumers
+// that want to explicitly pass the endpoint. Otherwise those consumers have to set this env var to a dummy value for no reason.
+// We check at runtime wether we have a suitable endpoint and error if not
+const SPARQL_ENDPOINT : string | undefined = env.get('MU_SPARQL_ENDPOINT').asString();
+
+const LOG_SPARQL_ALL : string = env.get('LOG_SPARQL_ALL').default('true').asString();
 const LOG_SPARQL_QUERIES : boolean = env.get('LOG_SPARQL_QUERIES').default(LOG_SPARQL_ALL).asBool();
 const LOG_SPARQL_UPDATES : boolean = env.get('LOG_SPARQL_UPDATES').default(LOG_SPARQL_ALL).asBool();
-const DEBUG_AUTH_HEADERS : boolean = env.get('DEBUG_AUTH_HEADERS').required().asBool();
 
-// The following configuration options are considered optional, but may be overriden as a temporary workaround for issues. Thus, a last resort.
+const DEBUG_AUTH_HEADERS : boolean = env.get('DEBUG_AUTH_HEADERS').default('false').asBool();
+// The following configuration options are optional and best left at the default values, but may be overriden as a temporary workaround for issues. Thus, a last resort.
 const RETRY = env.get('SUDO_QUERY_RETRY').default('false').asBool();
 const RETRY_MAX_ATTEMPTS = env.get('SUDO_QUERY_RETRY_MAX_ATTEMPTS').default('5').asInt();
 const RETRY_FOR_HTTP_STATUS_CODES = env.get('SUDO_QUERY_RETRY_FOR_HTTP_STATUS_CODES').default('').asArray();
@@ -36,6 +40,16 @@ export class HTTPResponseError extends Error {
 
 }
 
+function ensureEndpoint(endpoint: string | undefined):  string {
+  if(typeof endpoint === "string"){ 
+    return endpoint;
+  }
+  if(typeof SPARQL_ENDPOINT === "string") {
+    return SPARQL_ENDPOINT;
+  }
+  throw new Error("No endpoint configured. Either pass it into the queryoptions, or make sure the MU_SPARQL_ENDPOINT environment variable is set.");
+}
+
 function defaultHeaders() : Headers {
   const headers = new Headers();
   headers.set('content-type', 'application/x-www-form-urlencoded');
@@ -50,7 +64,7 @@ function defaultHeaders() : Headers {
 
 
 async function executeRawQuery<C extends SPARQLQueryConfig>(queryString: string, extraHeaders: Record<string,string> = {}, connectionOptions: ConnectionOptions = {}, attempt = 0): Promise<SPARQLResult<C>|null> {
-  const sparqlEndpoint = connectionOptions.sparqlEndpoint ?? SPARQL_ENDPOINT;
+  const sparqlEndpoint = ensureEndpoint(connectionOptions.sparqlEndpoint); 
   const headers = defaultHeaders();
   for (const key of Object.keys(extraHeaders)) {
     headers.append(key, extraHeaders[key]);
