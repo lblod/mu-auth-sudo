@@ -42,6 +42,59 @@ await update(updateString, extraHeaders, connectionOptions);
 
 ```
 
+## Typescript usage
+
+The query method allows for specifying the resulting bindings you expect to receive. Additionally, there are special return types for
+ASK, CONSTRUCT and DESCRIBE queries.
+
+```ts
+
+const queryString = `SELECT * FROM { GRAPH ?g { ?s ?p ?o. } } LIMIT 1`;
+// for SELECT queries, list the variable bindings you ask for in the select as an array of strings
+const result = await querySudo<['g', 's', 'p', 'o']>(queryString);
+// result shape and bindings are now typed, and will fully autocomplete
+result.results.bindins[0].g.value
+
+const queryString = `ASK {?something ?exists "with this value"}`
+// for ASK queries, simply specify the literal 'ask' as the generic
+const result = await querySudo<'ask'>(queryString)
+// result shape is typed
+result.boolean
+
+const queryString = `DESCRIBE <http://my-cool.uri/1>`
+// for DESCRIBE queries, simply specify the literal 'describe' as the generic
+// note, this is fully equivalent to querySudo<['s', 'p', 'v']>
+const result = await querySudo<'describe'>(queryString)
+// result shape is typed
+result.results.bindings[0].s.value
+
+const queryString = `CONSTRUCT {?my ?triple ?pattern. } WHERE {?my ?triple ?pattern .}`
+// for CONSTRUCT queries, simply specify the literal 'construct' as the generic
+// note, this is fully equivalent to querySudo<['s', 'p', 'v']>
+const result = await querySudo<'construct'>(queryString)
+// result shape is typed
+result.results.bindings[0].s.value
+```
+
+If you don't care or don't know the result shape, you can simply leave out the generic. It defaults to `string[]`, which means 
+everything except the specific binding names will still be typed, e.g:
+
+```ts
+
+const queryString = `SELECT * FROM { GRAPH ?g { ?s ?p ?o. } } LIMIT 1`;
+const result = querySudo(queryString);
+
+// still fully typed
+const firstBinding = result.results.bindings[0]
+
+// won't complain, since we haven't specified the precise binding names
+const hmmm = firstBinding.banana
+
+// however, the shape of the binding is still typed
+const {value, type} = hmmm
+
+```
+
 ## Logging
 
 The verbosity of logging can be configured as in the [javascript template](https://github.com/mu-semtech/mu-javascript-template/blob/6ff43eaf51856783c6946e82344e31a3348ce4a3/README.md#logging) through following environment variables:
