@@ -94,6 +94,42 @@ const hmmm = firstBinding.banana
 const {value, type} = hmmm
 
 ```
+## Alternative client
+
+Exported under `@lblod/mu-auth-sudo/client` is an alternative interface to the same query and update methods, aimed at ease-of-use without needing to stay compatible with the familiar mu-helper patterns.
+
+It exports 3 ways of using the client:
+
+### `sparql[Select|Ask|Construct|Describe|Update]`
+
+These are simple wrappers around the `querySudo` and `updateSudo` methods.
+In contrast to the methods they wrap, they take the `extraHeaders` argument inside the `connectionOptions` object, leading to a slightly cleaner invocation when you want to provide connectionOptions, but don't need any extra headers.
+
+Additionally, by splitting the methods over the various sparql verbs, they eliminate the need for specifying the generic type parameter (except for the select method)
+
+### `mk[Select|Ask|Construct|Describe|Update]`
+
+It's common to need the same connectionOptions for every invocation, especially the `sparqlEndpoint` setting. 
+These builder methods allow you to make a preconfigured version of each of the sparql methods.
+The preconfigured methods still allow overriding their options.
+
+### `sparqlClient`
+
+Wraps the above 5 builder methods in a single object, allowing you to preconfigure all 5 methods at once.
+This makes it easy to use this library for multiple sparql endpoints in the same project, cause it eliminates the need to pass the sparqlEndpoint to every invocation, and keeps things organized.
+
+e.g.:
+
+```ts
+const fooClient = sparqlClient({sparqlEndpoint: 'http://foo.com/sparql'});
+fooClient.select("SELECT * WHERE {?s ?p ?v.}");
+fooClient.update("INSERT DATA {<a> <b> <c>.}")
+
+//etc
+
+const barClient = sparqlClient({sparqlEndpoint: 'http://bar.com/sparql'});
+barClient.select("SELECT * WHERE {?s ?p ?v.}", {authUser: "exceptionalOverride"})
+```
 
 ## Logging
 
