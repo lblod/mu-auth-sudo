@@ -13,6 +13,7 @@ const LOG_SPARQL_ALL : string = env.get('LOG_SPARQL_ALL').default('true').asStri
 const LOG_SPARQL_QUERIES : boolean = env.get('LOG_SPARQL_QUERIES').default(LOG_SPARQL_ALL).asBool();
 const LOG_SPARQL_UPDATES : boolean = env.get('LOG_SPARQL_UPDATES').default(LOG_SPARQL_ALL).asBool();
 
+
 const DEBUG_AUTH_HEADERS : boolean = env.get('DEBUG_AUTH_HEADERS').default('false').asBool();
 // The following configuration options are optional and best left at the default values, but may be overriden as a temporary workaround for issues. Thus, a last resort.
 const RETRY = env.get('SUDO_QUERY_RETRY').default('false').asBool();
